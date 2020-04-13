@@ -11,6 +11,7 @@ class Chip8 {
 public:
 	Chip8();
 	~Chip8();
+	void resetGfx();
 	void load();
 	void run();
 	void drawSprite(unsigned short Vx, unsigned short Vy, unsigned short height);
@@ -43,7 +44,7 @@ private:
 	static const uint16_t REGISTER_COUNT = 16;
 	static const uint16_t STACK_SIZE = 16;
 	std::vector<uint16_t> stack;
-	std::vector<uint8_t> gfx; //screen
+	std::vector<std::vector<uint8_t>> gfx; //screen
 	std::vector<uint8_t> V; //register
 	std::vector<uint8_t> memory;
 };

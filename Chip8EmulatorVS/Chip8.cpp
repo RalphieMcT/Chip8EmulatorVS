@@ -44,15 +44,19 @@ Chip8::Chip8()
 	sp = 0;
 	memory = std::vector<uint8_t>(MEMORY_SIZE);
 	V = std::vector<uint8_t>(REGISTER_COUNT);
-	gfx = std::vector<uint8_t>(GFX_WIDTH * GFX_HEIGHT);
+	resetGfx();
 	stack = std::vector<uint16_t>(STACK_SIZE);
 	key = std::vector<bool>(16);
 	//zero all memory
-	std::fill(gfx.begin(), gfx.end(), 0x0);
+	//std::fill(gfx.begin(), gfx.end(), 0x0);
 	std::fill(memory.begin(), memory.end(), 0x0);
 	std::fill(V.begin(), V.end(), 0x0);
 	std::fill(stack.begin(), stack.end(), 0x0);
-	std::copy(chip8_fontset.begin(), chip8_fontset.end(), memory.begin()); //put fontset in memory
+	//std::copy(chip8_fontset.begin(), chip8_fontset.end(), memory.begin); //put fontset in memory
+	for (int i = 0; i < 80; i++)
+	{
+		memory[i] = chip8_fontset[i];
+	}
 	std::fill(key.begin(), key.end(), 0x0);
 	window = SDL_CreateWindow("chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, PIXEL_SIZE * GFX_WIDTH, PIXEL_SIZE * GFX_HEIGHT, SDL_WINDOW_SHOWN);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -66,6 +70,20 @@ Chip8::~Chip8()
 {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+}
+
+void Chip8::resetGfx() {
+	std::vector<std::vector<uint8_t>> tmpGfx;
+	for (int y = 0; y < GFX_HEIGHT; y++)
+	{
+		std::vector<uint8_t> line;
+		for (int x = 0; x < GFX_WIDTH; x++)
+		{
+			line.push_back(0);
+		}
+		tmpGfx.push_back(line);
+	}
+	gfx = tmpGfx;
 }
 
 void Chip8::load()
@@ -118,7 +136,8 @@ void Chip8::execute() {
 		{
 		case 0x00E0:
 			//clearScreen();// 
-			std::fill(gfx.begin(), gfx.end(), 0x0);
+			//std::fill(gfx.begin(), gfx.end(), 0x0);
+			resetGfx();
 			drawFlag = true;
 			pc += 2;
 			break;
@@ -136,9 +155,6 @@ void Chip8::execute() {
 	case 0x2000:
 		stack[sp++] = pc + 2;
 		pc = opcode & 0x0FFF;
-		/*stack[sp] = pc;
-		++sp;
-		pc = opcode & 0x0FFF*/
 		break;
 	case 0x3000:
 		if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) {
@@ -166,7 +182,7 @@ void Chip8::execute() {
 		pc += 2;
 		break;
 	case 0xC000:
-		V[opcode & 0x0F00 >> 8] = rand() & (opcode & 0x00FF);
+		V[(opcode & 0x0F00) >> 8] = rand() & (opcode & 0x00FF);
 		pc += 2;
 		break;
 
@@ -284,6 +300,7 @@ void Chip8::execute() {
 		case 0x0015:
 			delay_timer = V[(opcode & 0x0F00) >> 8];
 			pc += 2;
+			break;
 		case 0x0033:
 			memory[I] = (V[((opcode & 0x0F00) >> 8)] / 100);
 			memory[I + 1] = ((V[((opcode & 0x0F00) >> 8)] / 10) % 10);
@@ -291,7 +308,7 @@ void Chip8::execute() {
 			pc += 2;
 			break;
 		case 0x0065:
-			for (auto i = 0; i <= (opcode & 0x0F00) >> 8; i++)
+			for (auto i = 0; i <= ((opcode & 0x0F00) >> 8); i++)
 			{
 				V[i] = memory[I + i];
 			}
@@ -317,42 +334,40 @@ void Chip8::drawSprite(unsigned short Vx, unsigned short Vy, unsigned short heig
 			pixel = memory[I + y];
 			if ((pixel & (0x80 >> x)) != 0)
 			{
-				//modulo wraps sprites outside screen to other side
-				if (gfx[(Vx + x + ((Vy + y) * GFX_WIDTH)) % (GFX_WIDTH * GFX_HEIGHT)] == 1)
+				if (gfx.at((Vy + y) % GFX_HEIGHT).at((Vx + x) % GFX_WIDTH) == 1)
 				{
 					V[0xF] = 1;
 				}
-				gfx.at((Vx + x + ((Vy + y) * GFX_WIDTH)) % (GFX_WIDTH * GFX_HEIGHT)) ^= 0x1;
-				drawFlag = true;
+				gfx.at((Vy + y) % GFX_HEIGHT).at((Vx + x) % GFX_WIDTH) ^= 0x1;
 			}
 		}
 	}
+				drawFlag = true;
 }
 
 void Chip8::drawGraphics() {
-	for (auto i = 0; i < GFX_HEIGHT * GFX_WIDTH; i++)
+	for (auto y = 0; y < GFX_HEIGHT; y++)
 	{
-		uint16_t x = screen_rect.x + i % screen_rect.w;
-		uint16_t y = (screen_rect.y + i / screen_rect.w) * GFX_WIDTH;
-		uint16_t pos = x + y;
-
-		SDL_Rect rect = {
-			((i * PIXEL_SIZE) % screen_rect.w),
-			((i * PIXEL_SIZE) / screen_rect.w) * PIXEL_SIZE,
-			PIXEL_SIZE,
-			PIXEL_SIZE
-		};
-
-		if (gfx[i] > 0)
+		for (int x = 0; x < GFX_WIDTH; x++)
 		{
-			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		}
-		else
-		{
-			SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
-		}
+			SDL_Rect rect = {
+				x * PIXEL_SIZE,
+				y * PIXEL_SIZE,
+				PIXEL_SIZE,
+				PIXEL_SIZE
+			};
 
-		SDL_RenderFillRect(renderer, &rect);
+			if (gfx.at(y).at(x) > 0)
+			{
+				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+			}
+			else
+			{
+				SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
+			}
+
+			SDL_RenderFillRect(renderer, &rect);
+		}
 	}
 	SDL_RenderPresent(renderer);
 	drawFlag = false;
