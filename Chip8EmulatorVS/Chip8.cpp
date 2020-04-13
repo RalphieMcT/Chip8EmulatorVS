@@ -251,8 +251,8 @@ void Chip8::execute() {
 			pc += 2;
 			break;*/
 		case 0x0006:
-			V[0xF] = ((opcode & 0x0F00) >> 8) & 0x1;
-			V[(opcode & 0x0F00) >> 8] >>= 1; // carry
+			V[0xF] = ((opcode & 0x0F00) >> 8) & 0x1; // carry
+			V[(opcode & 0x0F00) >> 8] >>= 1; 
 			pc += 2;
 			break;
 		default:
@@ -339,10 +339,10 @@ void Chip8::drawSprite(unsigned short Vx, unsigned short Vy, unsigned short heig
 					V[0xF] = 1;
 				}
 				gfx.at((Vy + y) % GFX_HEIGHT).at((Vx + x) % GFX_WIDTH) ^= 0x1;
+				drawFlag = true;
 			}
 		}
 	}
-				drawFlag = true;
 }
 
 void Chip8::drawGraphics() {
