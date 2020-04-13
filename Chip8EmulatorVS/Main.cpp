@@ -5,7 +5,7 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
 	Chip8 myChip8;
 
@@ -14,6 +14,5 @@ int main()
 	myChip8.run();
 	//myChip8.
 
-	cout << myChip8.V << endl;
 	return 0;
 }
