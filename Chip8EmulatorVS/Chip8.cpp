@@ -59,7 +59,7 @@ Chip8::Chip8()
 	}
 	std::fill(key.begin(), key.end(), 0x0);
 	window = SDL_CreateWindow("chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, PIXEL_SIZE * GFX_WIDTH, PIXEL_SIZE * GFX_HEIGHT, SDL_WINDOW_SHOWN);
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
 	screen_rect.x = 0;
 	screen_rect.y = 0;
 	screen_rect.w = PIXEL_SIZE * GFX_WIDTH;
@@ -94,7 +94,7 @@ void Chip8::load()
 	char* buffer;
 	size_t result;
 
-	pFile = fopen("pong.ch8", "rb");
+	pFile = fopen("ufo.ch8", "rb");
 
 	if (pFile == NULL) { fputs("File error: ", stderr); exit(1); }
 
@@ -136,15 +136,12 @@ void Chip8::execute() {
 	uint8_t nn = (opcode & 0x00FF);
 	uint16_t nnn = (opcode & 0x0FFF);
 
-
 	switch (msb)
 	{
-	case 0x0000:
+	case 0x0:
 		switch (nn)
 		{
 		case 0xE0:
-			//clearScreen();// 
-			//std::fill(gfx.begin(), gfx.end(), 0x0);
 			resetGfx();
 			drawFlag = true;
 			pc += 2;
@@ -154,7 +151,6 @@ void Chip8::execute() {
 			break;
 		default:
 			printf("Unknown opcode [0x0000]: 0x%X\n", opcode);
-			throw std::exception((char*)opcode);
 		}
 		break;
 	case 0x1:
@@ -198,7 +194,16 @@ void Chip8::execute() {
 		V[x] += nn;
 		pc += 2;
 		break;
-
+	case 0x9:
+		if (V[x] != V[y])
+		{
+			pc += 4;
+		}
+		else
+		{
+			pc += 2;
+		}
+		break;
 	case 0x8:
 		switch (n)
 		{
@@ -322,12 +327,17 @@ void Chip8::execute() {
 			}
 			pc += 2;
 			break;
+		case 0x1E:
+			I += V[x];
+			pc += 2;
+			break;
 		default:
 			printf("unknown opcode 0x%X\n", opcode);
 			break;
 		}
+	default:
+		printf("unknown opcode 0x%X\n", opcode);
 		break;
-
 	}
 }
 
