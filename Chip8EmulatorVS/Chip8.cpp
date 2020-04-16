@@ -129,19 +129,27 @@ void Chip8::emulateCycle() {
 }
 
 void Chip8::execute() {
-	switch (opcode & 0xF000)
+	uint8_t msb = ((opcode & 0xF000) >> 12);
+	uint8_t x = ((opcode & 0x0F00) >> 8);
+	uint8_t y = ((opcode & 0x00F0) >> 4);
+	uint8_t n = (opcode & 0x000F);
+	uint8_t nn = (opcode & 0x00FF);
+	uint16_t nnn = (opcode & 0x0FFF);
+
+
+	switch (msb)
 	{
 	case 0x0000:
-		switch (opcode & 0x00FF)
+		switch (nn)
 		{
-		case 0x00E0:
+		case 0xE0:
 			//clearScreen();// 
 			//std::fill(gfx.begin(), gfx.end(), 0x0);
 			resetGfx();
 			drawFlag = true;
 			pc += 2;
 			break;
-		case 0x00EE: //0x00EE
+		case 0xEE: //0x00EE
 			pc = stack[--sp];
 			break;
 		default:
@@ -149,74 +157,74 @@ void Chip8::execute() {
 			throw std::exception((char*)opcode);
 		}
 		break;
-	case 0x1000:
-		pc = opcode & 0x0FFF;
+	case 0x1:
+		pc = nnn;
 		break;
-	case 0x2000:
+	case 0x2:
 		stack[sp++] = pc + 2;
-		pc = opcode & 0x0FFF;
+		pc = nnn;
 		break;
-	case 0x3000:
-		if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF)) {
+	case 0x3:
+		if (V[x] == nn) {
 			pc += 4;
 		}
 		else {
 			pc += 2;
 		}
 		break;
-	case 0x4000:
-		if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF)) {
+	case 0x4:
+		if (V[x] != nn) {
 			pc += 4;
 		}
 		else {
 			pc += 2;
 		}
 		break;
-	case 0x6000:
-		V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
+	case 0x6:
+		V[x] = nn;
 		pc += 2;
 		break;
 
-	case 0xA000:
-		I = opcode & 0x0FFF;
+	case 0xA:
+		I = nnn;
 		pc += 2;
 		break;
-	case 0xC000:
-		V[(opcode & 0x0F00) >> 8] = rand() & (opcode & 0x00FF);
-		pc += 2;
-		break;
-
-	case 0x7000:
-		V[(opcode & 0x0F00) >> 8] += (opcode & 0x00FF);
+	case 0xC:
+		V[x] = rand() & nn;
 		pc += 2;
 		break;
 
-	case 0x8000:
-		switch (opcode & 0x000F)
+	case 0x7:
+		V[x] += nn;
+		pc += 2;
+		break;
+
+	case 0x8:
+		switch (n)
 		{
-		case 0x0000:
-			V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
+		case 0x0:
+			V[x] = V[y];
 			pc += 2;
 			break;
-		case 0x0001:
-			V[(opcode & 0x0F00) >> 8] |= V[(opcode & 0x00F0) >> 4];
+		case 0x1:
+			V[x] |= V[y];
 			pc += 2;
 			break;
-		case 0x0002:
-			V[(opcode & 0x0F00) >> 8] &= V[(opcode & 0x00F0) >> 4];
+		case 0x2:
+			V[x] &= V[y];
 			pc += 2;
 			break;
-		case 0x0003:
-			V[(opcode & 0x0F00) >> 8] ^= V[(opcode & 0x00F0) >> 4];
+		case 0x3:
+			V[x] ^= V[y];
 			pc += 2;
 			break;
-		case 0x0004:
+		case 0x4:
 			V[15] = 0;
-			if (V[(opcode & 0x0F00) >> 8] + V[(opcode & 0x00F0) >> 4] <= 0x00FF) {
-				V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
+			if (V[x] + V[y] <= 0x00FF) {
+				V[x] += V[y];
 			}
 			else {
-				V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
+				V[x] += V[y];
 				V[15] = 1;
 			}
 			pc += 2;
@@ -232,13 +240,13 @@ void Chip8::execute() {
 			V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 			break;*/
-		case 0x0005:
+		case 0x5:
 			V[15] = 0;
-			if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8]) {
-				V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
+			if (V[y] > V[x]) {
+				V[x] -= V[y];
 			}
 			else {
-				V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
+				V[x] -= V[y];
 				V[15] = 1;
 			}
 			pc += 2;
@@ -250,9 +258,9 @@ void Chip8::execute() {
 			V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
 			pc += 2;
 			break;*/
-		case 0x0006:
-			V[0xF] = ((opcode & 0x0F00) >> 8) & 0x1; // carry
-			V[(opcode & 0x0F00) >> 8] >>= 1; 
+		case 0x6:
+			V[0xF] = (x) & 0x1; // carry
+			V[x] >>= 1; 
 			pc += 2;
 			break;
 		default:
@@ -266,49 +274,49 @@ void Chip8::execute() {
 		//I value doesn’t change after the execution of this instruction. 
 		//As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn,
 		//and to 0 if that doesn’t happen 
-	case 0xD000: {
-		unsigned short height = (opcode & 0x000F);
-		unsigned short Vx = V[(opcode & 0x0F00) >> 8];
-		unsigned short Vy = V[(opcode & 0x00F0) >> 4];
+	case 0xD: {
+		unsigned short height = n;
+		unsigned short Vx = V[x];
+		unsigned short Vy = V[y];
 		drawSprite(Vx, Vy, height);
 		pc += 2;
 		break;
 	}
-	case 0xE000:
-		if (key.at(V[(opcode & 0x0F00) >> 8]) == true) {
+	case 0xE:
+		if (key.at(V[x]) == true) {
 			pc += 2;
 		}
 		else {
 			pc += 4;
 		}
 		break;
-	case 0xF000:
-		switch (opcode & 0x00FF)
+	case 0xF:
+		switch (nn)
 		{
-		case 0x0007:
-			V[(opcode & 0x0F00) >> 8] = delay_timer;
+		case 0x07:
+			V[x] = delay_timer;
 			pc += 2;
 			break;
-		case 0x0018:
-			sound_timer = V[(opcode & 0x0F00) >> 8];
+		case 0x18:
+			sound_timer = V[x];
 			pc += 2;
 			break;
-		case 0x029:
-			I = V[(opcode & 0x0F00) >> 8] * 0x5;
+		case 0x29:
+			I = V[x] * 0x5;
 			pc += 2;
 			break;
-		case 0x0015:
-			delay_timer = V[(opcode & 0x0F00) >> 8];
+		case 0x15:
+			delay_timer = V[x];
 			pc += 2;
 			break;
-		case 0x0033:
-			memory[I] = (V[((opcode & 0x0F00) >> 8)] / 100);
-			memory[I + 1] = ((V[((opcode & 0x0F00) >> 8)] / 10) % 10);
-			memory[I + 2] = ((V[((opcode & 0x0F00) >> 8)] % 100) % 10);
+		case 0x33:
+			memory[I] = (V[x] / 100);
+			memory[I + 1] = ((V[x] / 10) % 10);
+			memory[I + 2] = ((V[x] % 100) % 10);
 			pc += 2;
 			break;
-		case 0x0065:
-			for (auto i = 0; i <= ((opcode & 0x0F00) >> 8); i++)
+		case 0x65:
+			for (auto i = 0; i <= x; i++)
 			{
 				V[i] = memory[I + i];
 			}
