@@ -94,7 +94,7 @@ void Chip8::load()
 	char* buffer;
 	size_t result;
 
-	pFile = fopen("ufo.ch8", "rb");
+	pFile = fopen("pong.ch8", "rb");
 
 	if (pFile == NULL) { fputs("File error: ", stderr); exit(1); }
 
@@ -144,10 +144,10 @@ void Chip8::execute() {
 		case 0xE0:
 			resetGfx();
 			drawFlag = true;
-			pc += 2;
 			break;
 		case 0xEE: //0x00EE
 			pc = stack[--sp];
+			pc -= 2;
 			break;
 		default:
 			printf("Unknown opcode [0x0000]: 0x%X\n", opcode);
@@ -155,73 +155,52 @@ void Chip8::execute() {
 		break;
 	case 0x1:
 		pc = nnn;
+		pc -= 2;
 		break;
 	case 0x2:
 		stack[sp++] = pc + 2;
 		pc = nnn;
+		pc -= 2;
 		break;
 	case 0x3:
-		if (V[x] == nn) {
-			pc += 4;
-		}
-		else {
+		if (V[x] == nn)
 			pc += 2;
-		}
 		break;
 	case 0x4:
-		if (V[x] != nn) {
-			pc += 4;
-		}
-		else {
+		if (V[x] != nn) 
 			pc += 2;
-		}
 		break;
 	case 0x6:
 		V[x] = nn;
-		pc += 2;
 		break;
 
 	case 0xA:
 		I = nnn;
-		pc += 2;
 		break;
 	case 0xC:
 		V[x] = rand() & nn;
-		pc += 2;
 		break;
-
 	case 0x7:
 		V[x] += nn;
-		pc += 2;
 		break;
 	case 0x9:
 		if (V[x] != V[y])
-		{
-			pc += 4;
-		}
-		else
-		{
 			pc += 2;
-		}
 		break;
 	case 0x8:
 		switch (n)
 		{
 		case 0x0:
 			V[x] = V[y];
-			pc += 2;
 			break;
 		case 0x1:
 			V[x] |= V[y];
-			pc += 2;
 			break;
 		case 0x2:
 			V[x] &= V[y];
-			pc += 2;
 			break;
 		case 0x3:
 			V[x] ^= V[y];
-			pc += 2;
 			break;
 		case 0x4:
 			V[15] = 0;
@@ -232,19 +211,7 @@ void Chip8::execute() {
 				V[x] += V[y];
 				V[15] = 1;
 			}
-			pc += 2;
-			break;/*{
-			V[15] = 0;
-			auto Vx = static_cast<uint16_t>(V[(opcode & 0x0F00) >> 8]);
-			auto Vy = static_cast<uint16_t>(V[(opcode & 0x00F0) >> 4]);
-			if (Vx + Vy > 255)
-				V[0xF] = 1; // carry
-			else
-				V[0xF] = 0;
-		}
-			V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
-			pc += 2;
-			break;*/
+			break;
 		case 0x5:
 			V[15] = 0;
 			if (V[y] > V[x]) {
@@ -254,19 +221,10 @@ void Chip8::execute() {
 				V[x] -= V[y];
 				V[15] = 1;
 			}
-			pc += 2;
 			break;
-			/*if (V[(opcode & 0x00F0) >> 4] > V[(opcode & 0x0F00) >> 8])
-				V[0xF] = 1; // carry
-			else
-				V[0xF] = 0;
-			V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
-			pc += 2;
-			break;*/
 		case 0x6:
 			V[0xF] = (x) & 0x1; // carry
 			V[x] >>= 1; 
-			pc += 2;
 			break;
 		default:
 			printf("unknown opcode 0x%X\n", opcode);
@@ -274,73 +232,60 @@ void Chip8::execute() {
 		}
 		break;
 
-		//DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. 
-		//Each row of 8 pixels is read as bit-coded starting from memory location I;
-		//I value doesn’t change after the execution of this instruction. 
-		//As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn,
-		//and to 0 if that doesn’t happen 
+
 	case 0xD: {
-		unsigned short height = n;
 		unsigned short Vx = V[x];
 		unsigned short Vy = V[y];
-		drawSprite(Vx, Vy, height);
-		pc += 2;
+		drawSprite(Vx, Vy, n);
 		break;
 	}
 	case 0xE:
-		if (key.at(V[x]) == true) {
+		if (key.at(V[x]) == false)
 			pc += 2;
-		}
-		else {
-			pc += 4;
-		}
 		break;
 	case 0xF:
 		switch (nn)
 		{
 		case 0x07:
 			V[x] = delay_timer;
-			pc += 2;
 			break;
 		case 0x18:
 			sound_timer = V[x];
-			pc += 2;
 			break;
 		case 0x29:
 			I = V[x] * 0x5;
-			pc += 2;
 			break;
 		case 0x15:
 			delay_timer = V[x];
-			pc += 2;
 			break;
 		case 0x33:
 			memory[I] = (V[x] / 100);
 			memory[I + 1] = ((V[x] / 10) % 10);
 			memory[I + 2] = ((V[x] % 100) % 10);
-			pc += 2;
 			break;
 		case 0x65:
 			for (auto i = 0; i <= x; i++)
 			{
 				V[i] = memory[I + i];
 			}
-			pc += 2;
 			break;
 		case 0x1E:
 			I += V[x];
-			pc += 2;
 			break;
 		default:
 			printf("unknown opcode 0x%X\n", opcode);
 			break;
 		}
-	default:
-		printf("unknown opcode 0x%X\n", opcode);
 		break;
 	}
+		pc += 2;
 }
 
+//DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. 
+//Each row of 8 pixels is read as bit-coded starting from memory location I;
+//I value doesn’t change after the execution of this instruction. 
+//As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn,
+//and to 0 if that doesn’t happen 
 void Chip8::drawSprite(unsigned short Vx, unsigned short Vy, unsigned short height) {
 	unsigned short pixel;
 
