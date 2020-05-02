@@ -1,18 +1,18 @@
 #pragma warning(suppress : 4996)
 #include "Chip8.h";
 #include "Main.h"
-
+#include "WinDisplay.h"
 
 using namespace std;
 
 int main(int argc, char* argv[])
 {
-	Chip8 myChip8;
+	Display *display = new WinDisplay(64, 32);
+	Chip8 *myChip8 = new Chip8(display);
+	myChip8->load();
+	myChip8->run();
 
-	myChip8.load();
-
-	myChip8.run();
-	//myChip8.
-
+	delete display;
+	delete myChip8;
 	return 0;
 }

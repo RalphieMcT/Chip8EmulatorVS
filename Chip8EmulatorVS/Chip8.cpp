@@ -34,8 +34,9 @@ std::vector<uint8_t> chip8_fontset =
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-Chip8::Chip8()
+Chip8::Chip8(Display* display)
 {
+	_display = display;
 	delay_timer = 0;
 	sound_timer = 0;
 	I = 0;
@@ -44,32 +45,23 @@ Chip8::Chip8()
 	sp = 0;
 	memory = std::vector<uint8_t>(MEMORY_SIZE);
 	V = std::vector<uint8_t>(REGISTER_COUNT);
-	resetGfx();
 	stack = std::vector<uint16_t>(STACK_SIZE);
 	key = std::vector<bool>(16);
-	//zero all memory
-	//std::fill(gfx.begin(), gfx.end(), 0x0);
+	resetGfx();
 	std::fill(memory.begin(), memory.end(), 0x0);
 	std::fill(V.begin(), V.end(), 0x0);
 	std::fill(stack.begin(), stack.end(), 0x0);
-	//std::copy(chip8_fontset.begin(), chip8_fontset.end(), memory.begin); //put fontset in memory
+	std::fill(key.begin(), key.end(), 0x0);
 	for (int i = 0; i < 80; i++)
 	{
 		memory[i] = chip8_fontset[i];
 	}
-	std::fill(key.begin(), key.end(), 0x0);
-	window = SDL_CreateWindow("chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, PIXEL_SIZE * GFX_WIDTH, PIXEL_SIZE * GFX_HEIGHT, SDL_WINDOW_SHOWN);
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-	screen_rect.x = 0;
-	screen_rect.y = 0;
-	screen_rect.w = PIXEL_SIZE * GFX_WIDTH;
-	screen_rect.h = PIXEL_SIZE * GFX_HEIGHT;
 }
 
 Chip8::~Chip8()
 {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
+	//SDL_DestroyRenderer(renderer);
+	//SDL_DestroyWindow(window);
 }
 
 void Chip8::resetGfx() {
@@ -307,7 +299,7 @@ void Chip8::drawSprite(unsigned short Vx, unsigned short Vy, unsigned short heig
 		}
 	}
 }
-
+/*
 void Chip8::drawGraphics() {
 	for (auto y = 0; y < GFX_HEIGHT; y++)
 	{
@@ -334,15 +326,15 @@ void Chip8::drawGraphics() {
 	}
 	SDL_RenderPresent(renderer);
 	drawFlag = false;
-}
-
+}*/
+/*
 void Chip8::clearScreen()
 {
 	SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
 	SDL_RenderFillRect(renderer, &screen_rect);
 	SDL_RenderPresent(renderer);
 }
-
+*/
 void Chip8::setKeys() {
 	SDL_PumpEvents();
 
@@ -375,8 +367,10 @@ void Chip8::run() {
 		emulateCycle();
 
 		// If the draw flag is set, update the screen
-		if (drawFlag)
-			drawGraphics();
+		if (drawFlag) {
+			_display->drawGraphics(gfx);
+			drawFlag = false;
+		}
 
 		// Store key press state (Press and Release)
 		setKeys();

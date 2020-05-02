@@ -159,10 +159,13 @@
   <ItemGroup>
     <ClCompile Include="Chip8.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="WinDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Chip8.h" />
+    <ClInclude Include="Display.h" />
     <ClInclude Include="Main.h" />
+    <ClInclude Include="WinDisplay.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

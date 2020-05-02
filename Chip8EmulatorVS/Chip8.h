@@ -6,19 +6,18 @@
 #include <iostream>
 #include <SDL.h>
 #include <vector>
+#include "Display.h"
 
 class Chip8 {
 public:
-	Chip8();
+	Chip8(Display* display);
 	~Chip8();
 	void resetGfx();
 	void load();
 	void run();
 	void drawSprite(unsigned short Vx, unsigned short Vy, unsigned short height);
-	void clearScreen();
 	void execute();
 	void emulateCycle();
-	void drawGraphics(); //draw to screen
 	void setKeys();
 	bool drawFlag = false; //true if draw to screen on this program cycle
 	unsigned short opcode = 0;
@@ -31,10 +30,7 @@ public:
 
 	unsigned short sp = 0; //stack pointer
 	std::vector<bool> key;
-
-	SDL_Rect screen_rect;
-	SDL_Window* window;
-	SDL_Renderer* renderer;
+	Display* _display;
 
 private:
 	static const uint16_t GFX_WIDTH = 64;
