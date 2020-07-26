@@ -1,5 +1,5 @@
-#pragma warning(suppress : 4996)
-#include "Chip8.h";
+//#pragma warning(suppress : 4996)
+#include "Chip8.h"
 #include "Main.h"
 #include "WinDisplay.h"
 

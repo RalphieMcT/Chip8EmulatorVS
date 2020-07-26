@@ -13,6 +13,7 @@
 #include <iomanip>
 #include "windows.h"
 #include <SDL.h>
+#include <bitset>
 
 std::vector<uint8_t> chip8_fontset =
 {
@@ -76,6 +77,7 @@ void Chip8::resetGfx() {
 		tmpGfx.push_back(line);
 	}
 	gfx = tmpGfx;
+	drawFlag = true;
 }
 
 void Chip8::load()
@@ -86,7 +88,7 @@ void Chip8::load()
 	char* buffer;
 	size_t result;
 
-	pFile = fopen("pong.ch8", "rb");
+	pFile = fopen("DelayTest.ch8", "rb");
 
 	if (pFile == NULL) { fputs("File error: ", stderr); exit(1); }
 
@@ -110,14 +112,8 @@ void Chip8::load()
 }
 
 void Chip8::emulateCycle() {
-	//fetch
 	opcode = memory[pc] << 8 | memory[pc + 1];
-	//decode
-	//execute
-	//std:fill(gfx.begin(), gfx.end(), 0);
 	execute();
-
-	//update
 }
 
 void Chip8::execute() {
@@ -135,9 +131,8 @@ void Chip8::execute() {
 		{
 		case 0xE0:
 			resetGfx();
-			drawFlag = true;
 			break;
-		case 0xEE: //0x00EE
+		case 0xEE:
 			pc = stack[--sp];
 			pc -= 2;
 			break;
@@ -161,6 +156,12 @@ void Chip8::execute() {
 	case 0x4:
 		if (V[x] != nn) 
 			pc += 2;
+		break;
+	case 0x5:
+		if (V[x] == V[y])
+		{
+			pc += 2;
+		}
 		break;
 	case 0x6:
 		V[x] = nn;
@@ -215,9 +216,23 @@ void Chip8::execute() {
 			}
 			break;
 		case 0x6:
-			V[0xF] = (x) & 0x1; // carry
-			V[x] >>= 1; 
+			V[0xF] = V[x] & 0b1; // carry
+			V[x] >>= 1;
 			break;
+		case 0x7:
+			V[0xF] = 1;
+			if (V[x] > V[y])
+			{
+				V[0xF] = 0;
+			}
+			V[x] = V[y] - V[x];
+			break;
+		case 0xE: {
+			std::bitset<8> bs(V[x]);
+			V[0xF] = bs[bs.size() - 1];
+			V[x] <<= 1;
+			break;
+		}
 		default:
 			printf("unknown opcode 0x%X\n", opcode);
 			break;
@@ -250,10 +265,33 @@ void Chip8::execute() {
 		case 0x15:
 			delay_timer = V[x];
 			break;
+		case 0xA:{
+			bool pressed = false;
+			for (auto i = 0; i < key.size(); i++)
+			{
+				if (key.at(i) > 0)
+				{
+					pressed = true;
+					V[x] = i;
+					break;
+				}
+			}
+			if (pressed == false)
+			{
+				pc -= 2;
+			}
+		}
+			break;
 		case 0x33:
 			memory[I] = (V[x] / 100);
 			memory[I + 1] = ((V[x] / 10) % 10);
 			memory[I + 2] = ((V[x] % 100) % 10);
+			break;
+		case 0x55:
+			for (auto i = 0; i <= x; i++)
+			{
+				memory[I + i] = V[i];
+			}
 			break;
 		case 0x65:
 			for (auto i = 0; i <= x; i++)
