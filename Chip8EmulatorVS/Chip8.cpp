@@ -88,7 +88,7 @@ void Chip8::load()
 	char* buffer;
 	size_t result;
 
-	pFile = fopen("DelayTest.ch8", "rb");
+	pFile = fopen("life.ch8", "rb");
 
 	if (pFile == NULL) { fputs("File error: ", stderr); exit(1); }
 
@@ -127,7 +127,7 @@ void Chip8::execute() {
 	switch (msb)
 	{
 	case 0x0:
-		switch (nn)
+		switch (nnn)
 		{
 		case 0xE0:
 			resetGfx();
@@ -169,6 +169,9 @@ void Chip8::execute() {
 
 	case 0xA:
 		I = nnn;
+		break;
+	case 0xB:
+		pc = nnn + V[0];
 		break;
 	case 0xC:
 		V[x] = rand() & nn;
@@ -246,9 +249,29 @@ void Chip8::execute() {
 		drawSprite(Vx, Vy, n);
 		break;
 	}
+	/* EX9E 	KeyOp 	if(key()==Vx) 	
+	Skips the next instruction if the key stored in VX is pressed. 
+	(Usually the next instruction is a jump to skip a code block)
+	EXA1 	KeyOp 	if(key()!=Vx) 	
+	Skips the next instruction if the key stored in VX isn't pressed. 
+	(Usually the next instruction is a jump to skip a code block) */
 	case 0xE:
-		if (key.at(V[x]) == false)
-			pc += 2;
+		switch (nn)
+		{
+		case 0x9E: {
+			if (key.at(V[x]) == true)
+				pc += 2;
+			break;
+		}
+		case 0xA1: {
+			if (key.at(V[x]) == false)
+				pc += 2;
+			break;
+		}
+		default:
+			printf("unknown opcode 0x%X\n", opcode);
+			break;
+		}
 		break;
 	case 0xF:
 		switch (nn)
@@ -256,18 +279,18 @@ void Chip8::execute() {
 		case 0x07:
 			V[x] = delay_timer;
 			break;
+		case 0x15:
+			delay_timer = V[x];
+			break;
 		case 0x18:
 			sound_timer = V[x];
 			break;
 		case 0x29:
 			I = V[x] * 0x5;
 			break;
-		case 0x15:
-			delay_timer = V[x];
-			break;
 		case 0xA:{
 			bool pressed = false;
-			for (auto i = 0; i < key.size(); i++)
+			for (uint8_t i = 0; i < key.size(); i++)
 			{
 				if (key.at(i) > 0)
 				{
@@ -308,7 +331,7 @@ void Chip8::execute() {
 		}
 		break;
 	}
-		pc += 2;
+	pc += 2;
 }
 
 //DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. 
