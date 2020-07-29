@@ -80,15 +80,14 @@ void Chip8::resetGfx() {
 	drawFlag = true;
 }
 
-void Chip8::load()
+void Chip8::load(const char* rom)
 {
 	FILE* pFile;
 
 	long lSize = 0;
 	char* buffer;
 	size_t result;
-
-	pFile = fopen("life.ch8", "rb");
+	pFile = fopen(rom, "rb");
 
 	if (pFile == NULL) { fputs("File error: ", stderr); exit(1); }
 

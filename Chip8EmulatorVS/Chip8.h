@@ -13,7 +13,7 @@ public:
 	Chip8(Display* display);
 	~Chip8();
 	void resetGfx();
-	void load();
+	void load(const char* rom);
 	void run();
 	void drawSprite(unsigned short Vx, unsigned short Vy, unsigned short height);
 	void execute();
