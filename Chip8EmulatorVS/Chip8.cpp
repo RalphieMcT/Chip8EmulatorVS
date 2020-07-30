@@ -1,17 +1,6 @@
-﻿// Chip8.cpp : Defines the entry point for the application.
-//
-/*
-0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
-0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
-0x200-0xFFF - Program ROM and work RAM
-*/
-#include "Chip8.h"
+﻿#include "Chip8.h"
 #include <fstream>
-#include <string>
 #include <iostream>
-#include <sstream>
-#include <iomanip>
-#include "windows.h"
 #include <SDL.h>
 #include <bitset>
 
@@ -38,18 +27,23 @@ std::vector<uint8_t> chip8_fontset =
 Chip8::Chip8(Display* display)
 {
 	_display = display;
+	reset();
+}
+
+void Chip8::reset()
+{
 	delay_timer = 0;
 	sound_timer = 0;
 	I = 0;
 	pc = 0x200;
 	opcode = 0;
 	sp = 0;
-	memory = std::vector<uint8_t>(MEMORY_SIZE);
 	V = std::vector<uint8_t>(REGISTER_COUNT);
 	stack = std::vector<uint16_t>(STACK_SIZE);
 	key = std::vector<bool>(16);
-	resetGfx();
+	memory = std::vector<uint8_t>(MEMORY_SIZE);
 	std::fill(memory.begin(), memory.end(), 0x0);
+	resetGfx();
 	std::fill(V.begin(), V.end(), 0x0);
 	std::fill(stack.begin(), stack.end(), 0x0);
 	std::fill(key.begin(), key.end(), 0x0);
@@ -57,12 +51,10 @@ Chip8::Chip8(Display* display)
 	{
 		memory[i] = chip8_fontset[i];
 	}
-}
-
-Chip8::~Chip8()
-{
-	//SDL_DestroyRenderer(renderer);
-	//SDL_DestroyWindow(window);
+	if (prevRom.empty() == false)
+	{
+		load(prevRom.c_str());
+	}
 }
 
 void Chip8::resetGfx() {
@@ -82,6 +74,7 @@ void Chip8::resetGfx() {
 
 void Chip8::load(const char* rom)
 {
+	prevRom = rom;
 	FILE* pFile;
 
 	long lSize = 0;
@@ -248,12 +241,6 @@ void Chip8::execute() {
 		drawSprite(Vx, Vy, n);
 		break;
 	}
-	/* EX9E 	KeyOp 	if(key()==Vx) 	
-	Skips the next instruction if the key stored in VX is pressed. 
-	(Usually the next instruction is a jump to skip a code block)
-	EXA1 	KeyOp 	if(key()!=Vx) 	
-	Skips the next instruction if the key stored in VX isn't pressed. 
-	(Usually the next instruction is a jump to skip a code block) */
 	case 0xE:
 		switch (nn)
 		{
@@ -359,42 +346,7 @@ void Chip8::drawSprite(unsigned short Vx, unsigned short Vy, unsigned short heig
 		}
 	}
 }
-/*
-void Chip8::drawGraphics() {
-	for (auto y = 0; y < GFX_HEIGHT; y++)
-	{
-		for (int x = 0; x < GFX_WIDTH; x++)
-		{
-			SDL_Rect rect = {
-				x * PIXEL_SIZE,
-				y * PIXEL_SIZE,
-				PIXEL_SIZE,
-				PIXEL_SIZE
-			};
 
-			if (gfx.at(y).at(x) > 0)
-			{
-				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-			}
-			else
-			{
-				SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
-			}
-
-			SDL_RenderFillRect(renderer, &rect);
-		}
-	}
-	SDL_RenderPresent(renderer);
-	drawFlag = false;
-}*/
-/*
-void Chip8::clearScreen()
-{
-	SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
-	SDL_RenderFillRect(renderer, &screen_rect);
-	SDL_RenderPresent(renderer);
-}
-*/
 void Chip8::setKeys() {
 	SDL_PumpEvents();
 
@@ -439,5 +391,16 @@ void Chip8::run() {
 
 		if (sound_timer > 0)
 			sound_timer--;
+
+		const Uint8* state = const_cast <Uint8*> (SDL_GetKeyboardState(NULL));
+		if (state[SDL_SCANCODE_SPACE])
+		{
+			reset();
+		}
+		if (state[SDL_SCANCODE_ESCAPE])
+		{
+			break;
+		}
 	}
 }
+

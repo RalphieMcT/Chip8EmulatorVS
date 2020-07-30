@@ -11,14 +11,9 @@
 class Chip8 {
 public:
 	Chip8(Display* display);
-	~Chip8();
-	void resetGfx();
 	void load(const char* rom);
 	void run();
-	void drawSprite(unsigned short Vx, unsigned short Vy, unsigned short height);
-	void execute();
-	void emulateCycle();
-	void setKeys();
+	void reset();
 	bool drawFlag = false; //true if draw to screen on this program cycle
 	unsigned short opcode = 0;
 
@@ -33,6 +28,11 @@ public:
 	Display* _display;
 
 private:
+	void drawSprite(unsigned short Vx, unsigned short Vy, unsigned short height);
+	void setKeys();
+	void execute();
+	void resetGfx();
+	void emulateCycle();
 	static const uint16_t GFX_WIDTH = 64;
 	static const uint16_t GFX_HEIGHT = 32;
 	static const uint16_t PIXEL_SIZE = 8;
@@ -42,5 +42,11 @@ private:
 	std::vector<uint16_t> stack;
 	std::vector<std::vector<uint8_t>> gfx; //screen
 	std::vector<uint8_t> V; //register
+	/*
+	0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
+	0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
+	0x200-0xFFF - Program ROM and work RAM
+	*/
 	std::vector<uint8_t> memory;
+	std::string prevRom;
 };
