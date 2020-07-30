@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 		bool readroms = true;
 		if (readroms)
 		{
-			rom = printRoms();
+			rom = chooseRom();
 			std::cout << rom << std::endl;
 		}
 		Display *display = new WinDisplay(64, 32);
@@ -33,10 +33,11 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-std::string printRoms()
+std::string chooseRom()
 {
 	std::vector<std::string> roms;
 	std::string s = filesystem::current_path().u8string();
+	system("CLS");
 	std::cout << "Current ROM directory: " << s << std::endl;
 
 	int i = 0;
@@ -49,8 +50,28 @@ std::string printRoms()
 			roms.push_back(f.path().filename().u8string());
 		}
 	}
-	int romnum;
-	std::cin >> romnum;
+	int romnum = -1;
+	std::string input = "";
+	char* p;
+	while (true)
+	{
+		std::cin >> input;
+		strtol(input.c_str(), &p, 10);
+		if (*p==0)
+		{
+			romnum = atoi(input.c_str());
+		}
+		else
+		{
+			std::cout << "Not a number" << std::endl;
+		}
+		if (romnum < 0 || romnum >= roms.size())
+		{
+			std::cout << "Invalid number" << std::endl;
+			continue;
+		}
+		break;
+	}
 	std::string romname = roms.at(romnum);
 	return romname;
 }

@@ -14,7 +14,6 @@ WinDisplay::WinDisplay(uint8_t _width, uint8_t _height) {
 WinDisplay::~WinDisplay()
 {
 	SDL_DestroyRenderer(renderer);
-	//SDL_VideoQuit();
 	SDL_DestroyWindow(window);
 }
 

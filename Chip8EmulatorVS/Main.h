@@ -1,5 +1,5 @@
 #pragma once
 
 int main(int , char* []);
-std::string printRoms();
+std::string chooseRom();
 //std::vector<string> roms;
