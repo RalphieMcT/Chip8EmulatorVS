@@ -159,13 +159,17 @@
   <ItemGroup>
     <ClCompile Include="Chip8.cpp" />
     <ClCompile Include="Display.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="SDLInput.cpp" />
     <ClCompile Include="WinDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Chip8.h" />
     <ClInclude Include="Display.h" />
+    <ClInclude Include="Input.h" />
     <ClInclude Include="Main.h" />
+    <ClInclude Include="SDLInput.h" />
     <ClInclude Include="WinDisplay.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

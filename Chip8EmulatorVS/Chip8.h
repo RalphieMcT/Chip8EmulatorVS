@@ -7,10 +7,11 @@
 #include <SDL.h>
 #include <vector>
 #include "Display.h"
+#include "Input.h"
 
 class Chip8 {
 public:
-	Chip8(Display* display);
+	Chip8(Display* display, Input* input);
 	void load(const char* rom);
 	void run();
 	void reset();
@@ -26,6 +27,7 @@ public:
 	unsigned short sp = 0; //stack pointer
 	std::vector<bool> key;
 	Display* _display;
+	Input* _input;
 
 private:
 	void drawSprite(unsigned short Vx, unsigned short Vy, unsigned short height);

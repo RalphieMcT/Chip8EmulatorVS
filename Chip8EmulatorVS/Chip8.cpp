@@ -24,9 +24,10 @@ std::vector<uint8_t> chip8_fontset =
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-Chip8::Chip8(Display* display)
+Chip8::Chip8(Display* display, Input* input)
 {
 	_display = display;
+	_input = input;
 	reset();
 }
 

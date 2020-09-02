@@ -3,6 +3,7 @@
 #include "Chip8.h"
 #include "Main.h"
 #include "WinDisplay.h"
+#include "SDLInput.h"
 #include <experimental/filesystem>
 #include <string>
 #include <iostream>
@@ -23,7 +24,8 @@ int main(int argc, char* argv[])
 			std::cout << rom << std::endl;
 		}
 		Display *display = new WinDisplay(64, 32);
-		Chip8 *myChip8 = new Chip8(display);
+		Input *input = new SDLInput();
+		Chip8 *myChip8 = new Chip8(display, input);
 		myChip8->load(rom.c_str());
 		myChip8->run();
 
