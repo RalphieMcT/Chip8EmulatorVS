@@ -1,7 +1,6 @@
 ﻿#include "Chip8.h"
 #include <fstream>
 #include <iostream>
-#include <SDL.h>
 #include <bitset>
 
 std::vector<uint8_t> chip8_fontset =
@@ -348,60 +347,22 @@ void Chip8::drawSprite(unsigned short Vx, unsigned short Vy, unsigned short heig
 	}
 }
 
-void Chip8::setKeys() {
-	SDL_PumpEvents();
-
-	// update keyboard state
-	//keysArray = const_cast <Uint8*> (SDL_GetKeyboardState(NULL));
-
-	const Uint8* state = const_cast <Uint8*> (SDL_GetKeyboardState(NULL));
-	key.at(0x0) = state[SDL_SCANCODE_1];
-	key.at(0x1) = state[SDL_SCANCODE_2];
-	key.at(0x2) = state[SDL_SCANCODE_3];
-	key.at(0x3) = state[SDL_SCANCODE_4];
-	key.at(0x4) = state[SDL_SCANCODE_Q];
-	key.at(0x5) = state[SDL_SCANCODE_W];
-	key.at(0x6) = state[SDL_SCANCODE_E];
-	key.at(0x7) = state[SDL_SCANCODE_R];
-	key.at(0x8) = state[SDL_SCANCODE_A];
-	key.at(0x9) = state[SDL_SCANCODE_S];
-	key.at(0xa) = state[SDL_SCANCODE_D];
-	key.at(0xb) = state[SDL_SCANCODE_F];
-	key.at(0xc) = state[SDL_SCANCODE_Z];
-	key.at(0xd) = state[SDL_SCANCODE_X];
-	key.at(0xe) = state[SDL_SCANCODE_C];
-	key.at(0xf) = state[SDL_SCANCODE_V];
-}
-
 void Chip8::run() {
-	for (;;)
-	{
-		// Emulate one cycle
-		emulateCycle();
+	emulateCycle();
 
-		// If the draw flag is set, update the screen
-		if (drawFlag) {
-			_display->drawGraphics(gfx);
-			drawFlag = false;
-		}
-
-		// Store key press state (Press and Release)
-		setKeys();
-		if (delay_timer > 0)
-			delay_timer--;
-
-		if (sound_timer > 0)
-			sound_timer--;
-
-		const Uint8* state = const_cast <Uint8*> (SDL_GetKeyboardState(NULL));
-		if (state[SDL_SCANCODE_SPACE])
-		{
-			reset();
-		}
-		if (state[SDL_SCANCODE_ESCAPE])
-		{
-			break;
-		}
+	// If the draw flag is set, update the screen
+	if (drawFlag) {
+		_display->drawGraphics(gfx);
+		drawFlag = false;
 	}
+
+	// Store key press state (Press and Release)
+	if (delay_timer > 0)
+		delay_timer--;
+
+	if (sound_timer > 0)
+		sound_timer--;
+
+	key = _input->keys();
 }
 

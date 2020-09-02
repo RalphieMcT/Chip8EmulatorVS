@@ -4,7 +4,6 @@
 #pragma once
 
 #include <iostream>
-#include <SDL.h>
 #include <vector>
 #include "Display.h"
 #include "Input.h"
@@ -31,7 +30,6 @@ public:
 
 private:
 	void drawSprite(unsigned short Vx, unsigned short Vy, unsigned short height);
-	void setKeys();
 	void execute();
 	void resetGfx();
 	void emulateCycle();

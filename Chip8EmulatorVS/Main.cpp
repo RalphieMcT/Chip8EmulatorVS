@@ -14,24 +14,36 @@ using namespace std::experimental;
 
 int main(int argc, char* argv[])
 {
-	for (;;)
+	std::string rom = "Pong.ch8";
+	bool readroms = true;
+	if (readroms)
 	{
-		std::string rom = "Pong.ch8";
-		bool readroms = true;
-		if (readroms)
-		{
-			rom = chooseRom();
-			std::cout << rom << std::endl;
-		}
-		Display *display = new WinDisplay(64, 32);
-		Input *input = new SDLInput();
-		Chip8 *myChip8 = new Chip8(display, input);
-		myChip8->load(rom.c_str());
-		myChip8->run();
-
-		delete display;
-		delete myChip8;
+		rom = chooseRom();
+		std::cout << rom << std::endl;
 	}
+	Display *display = new WinDisplay(64, 32);
+	Input *input = new SDLInput();
+	Chip8 *myChip8 = new Chip8(display, input);
+	myChip8->load(rom.c_str());
+	
+	for (;;) {
+		SDL_PumpEvents();
+		const Uint8* state = const_cast <Uint8*> (SDL_GetKeyboardState(NULL));
+		if (state[SDL_SCANCODE_SPACE])
+		{
+			myChip8->reset();
+		}
+		if (state[SDL_SCANCODE_ESCAPE])
+		{
+			break;
+		}
+		myChip8->run();
+	}
+
+	delete display;
+	delete myChip8;
+	delete input;
+	
 	return 0;
 }
 
@@ -67,7 +79,7 @@ std::string chooseRom()
 		{
 			std::cout << "Not a number" << std::endl;
 		}
-		if (romnum < 0 || romnum >= roms.size())
+		if (romnum < 0 || romnum >= (int)roms.size())
 		{
 			std::cout << "Invalid number" << std::endl;
 			continue;

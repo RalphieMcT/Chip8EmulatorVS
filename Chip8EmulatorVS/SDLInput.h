@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Input.h";
+#include "Input.h"
 
 class SDLInput : public Input{
 public:
